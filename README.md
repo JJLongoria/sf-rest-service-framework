@@ -1,16 +1,16 @@
 # [**REST Service Framework**]()
 
-El Framework para API REST diseñado, permite con **un sólo punto de entrada** (una sóla clase *@RestResource*) gestionar **toda una API Rest** Estandar de forma fácil y preocupandose sólo de la implementación y definición de rutas.
+The REST Service Framework are designed to create a complete API REST on Salesforce easy, with only one entry point (one *@RestResource* class) to **manage an entire standard API REST** easy to focus your efforts on routes definition and implementation.
 
-Por lo tanto, se simplifica la gestión e implementación de API's REST en Salesforce al usar un sólo punto de entrada, o un número muy reducido (@RestResource) para generar una o varias API's REST y pudiendo definir de forma fácil un conjunto de rutas, mantenerlas y hacer un seguimiento de éstas sin necesidad de recordar cuales de las N clases del proyecto eran @RestResource y cuales no...
+This framework simplify manage and handle any API REST because use one (or a few) api entry points and not need to remember all entry point classes, only define your routes, the routing and implement your routes, let the framework make the rest.
 
-Esto se hace mediante la implementación de la clase `RestServiceRoute` en cada una de las clases que serán parte de la API y actuarán como rutas en ésta y las clases hijas deberan implementar apenas unos pocos métodos (si lo necesitan)
+You only need to extends the class `RestServiceRoute` on any Rest API Route to create your API. 
 
-# [**Implementación**]()
+# [**Implementation**]()
 
-## [**Definición de Rutas**]()
+## [**Define Routes**]()
 
-Pongamos que queremos definir las siguientes rutas en nuestro sistema siguiendo el estandard de REST para trabajar con Cuentas, Oportunidades y Contactos:
+For example, we need to define the next routes on our API to work with Accounts, Opportunities and Contacts:
 
 - `api/v1.0/accounts/`
 - `api/v1.0/accounts/:accountId`
@@ -29,7 +29,7 @@ Pongamos que queremos definir las siguientes rutas en nuestro sistema siguiendo 
 - `api/v1.0/opportunities`
 - `api/v1.0/opportunities/:oppId`
 
-El arbol de Rutas quedaría de la siguiente forma
+The Tree routes are the next:
 
                 api/v1.0
             _______|_______
@@ -39,31 +39,33 @@ El arbol de Rutas quedaría de la siguiente forma
             |             |
         Contacts     Opportunities           
 
-## [**Convertir Rutas en Clases**]()
+## [**Transform Routes to Classes**]()
 
-Segun el arbol de rutas, podemos deducir que al menos, tendremos el punto de entrada `api/v1.0` y al menos, tres rutas (Clases) principales, `Accounts`, `Contacts` y `Opportunidades`
+According the tree routes, we have an entry point `api/v1.0` and, at least, three main routes (classes), `Accounts`, `Contacts` and `Opportunidades`
 
-Podemos traducir esto a las siguientes clases: 
+We can transform the routes on classes like this: 
 - `api/v1.0` => `APIEntryPointRoute`
 - `Accounts` => `AccountsRoute`
 - `Contacts` => `ContactsRoute`
 - `Opportunities` => `OpportunitiesRoute`
 
+With this design, all main routes will be defined in `APIEntryPointRoute`, that is, `accounts`, `contacts` and `opportunities` routes and their controller classes (`AccountsRoute`, `ContactsRoute` and `OpportunitiesRoute`)
+
 De esta forma la definición de las rutas principales de la API estarán en `APIEntryPointRoute` es decir, las rutas, `accounts`, `contacts` y `opportunities` estarán aqui definidas, así como su clase controladora respectivamente (`AccountsRoute`, `ContactsRoute` y `OpportunitiesRoute`)
 
-Por lo tanto, la clase **`AccountsRoute`** responderá a las rutas
+Therefore, the **`AccountsRoute`** class will manage the next routes
 
 - `api/v1.0/accounts/`
 - `api/v1.0/accounts/:accountId`
 
-La clase **`ContactsRoute`** gestionará las rutas
+and  **`ContactsRoute`**class will handle this routes
 
 - `api/v1.0/accounts/:accountId/contacts`
 - `api/v1.0/accounts/:accountId/contacts/:contactId`
 - `api/v1.0/contacts`
 - `api/v1.0/contacts/:contactId`
 
-y por último, la clase **`OpportunitiesRoute`** se encargará de responder a las peticiones a las rutas
+and last, the **`OpportunitiesRoute`** class will be respond to all this routes
 
 - `api/v1.0/accounts/:accountId/opportunities`
 - `api/v1.0/accounts/:accountId/opportunities/:oppId`
@@ -72,9 +74,9 @@ y por último, la clase **`OpportunitiesRoute`** se encargará de responder a la
 
 --- 
 
-## [**Definir Punto de Entrada `@RestResource`**]()
+## [**Define the API REST Entry Point `@RestResource`**]()
 
-Como hemos comentado, podemos definir toda una API Rest con un sólo punto de entrada, es decir, con una sola clase con la etiqueta @RestResource ya que el Framework se encargará de gestinar las peticiones y rutas para redirigirlo al controlador correpondiente:
+With this framework, we can define only one entry point to all our REST APIs on our Salesforce project, that is, onle one class with @RestResource tag, because the framework will handle and routing all requests.
 
 ```java
 @RestResource(urlMapping='/api/*')
@@ -106,26 +108,23 @@ global class APIRestEntryPoint{
     }
 }
 ```
-
-No necesitaremos implementar más en la clase como punto de entrada, el resto de la implementación será gestionado por la clase `APIEntryPointRoute`.
+No need implement any more on the entry point class, the entire implementation will be handle by `APIEntryPointRoute` as main router class.
 
 --- 
 
-## [**Implementar las distintas rutas**]()
+## [**Implement your Routes**]()
 
-Para la implementación de las rutas, deberemos crear las distinas classes, `APIEntryPointRoute`, `AccountsRoute`, `ContactsRoute` y `OpportunitiesRoute` para gestionar las llamadas REST.
+To implement the routes, we must create the classes `APIEntryPointRoute`, `AccountsRoute`, `ContactsRoute` and `OpportunitiesRoute` to handle REST Requests.
 
-Comenzaremos definiendo la ruta de entrada, que será de la que parta toda la API Rest. (Todas las rutas deben heredar de la clase `RestServiceRoute`)
-
-### [**Implementar Ruta de Entrada de la API**]()
+### [**Implement API Entry Point Route**]()
 
 ```java
 public class APIEntryRoute extends RestServiceRoute {
 
-    // Esta clase solo necesitará implementar (salvo que se quiera atender otras peticiones) el método setupRoutes (heredado) para configurar el enrutamiento de la API
+    // This class only need to implement (excep to handle other requests) the setupRoutes() method (inherited) to setup the API Routing
 
     public override void setupRoutes() {
-        // Usamos el método addRoute() (heredado) para añadir todas las rutas de la API
+        // use method addRoute() (inherited) to add any route to the API
         addRoute('accounts', new AccountsRoute());
         addRoute('contacts', new ContactsRoute());
         addRoute('opportunities', new OpportunitiesRoute());
@@ -135,52 +134,52 @@ public class APIEntryRoute extends RestServiceRoute {
 
 --- 
 
-### [**Implementar Ruta de Cuentas (Accounts)**]()
+### [**Implement Account Route (accounts)**]()
 
-Para implementar la ruta de accounts, deberemos hacer lo siguiente
+The Account route implementation example are:
 
 ```java
 public class AccountsRoute extends RestServiceRoute {
 
-    // Configuramos las rutas hijas de la ruta de account
+    // Setup child routes
     public override void setupRoutes() {
-        // Usamos el método addRoute() (heredado) para añadir todas las rutas de la API
+        // use method addRoute() (inherited) to add any child route to account endpoint
         addRoute('contacts', new ContactsRoute(getResourceId()));
         addRoute('opportunities', new OpportunitiesRoute(getResourceId()));
     }
 
     public override Object doGet() {
         if (!String.isEmpty(getResourceId())) {
-            // Tratar la respuesta cuando existe Id de recurso en la URL
+            // Handle request when have resourceId on URL
             // Endpoint: api/v1.0/accounts/:accountId
             Account acc = new Account();
-            // Implementación
+            // Implementation not shown
             return acc;
         } else if (containsQueryParameter('accountId')){
             String recordId = getQueryParameter('accountId');
-            // Tratar la respuesta cuando no viene Id del recurso en la URL, pero viene a través de un parámetro de query de la URL
+            // Handle request when not has resourceId on URL but has resourceId on URL query parameter
             // Endpoint: api/v1.0/accounts?accountId=XXXXXXX
             Account acc = new Account();
-            // Implementación
+            // Implementation not shown
             return acc;
         } else {
-            // Tratar la respuesta cuando no existe Id de recurso en la URL
+            // Handle request when not has resource Id on URL
             // Endpoint: api/v1.0/accounts
             List<Account> acc = new List<Account>();
-            // Implementación
+            // Implementation not shown
             return acc;
         }
     }
 
-    // Incluir métodos doPost(), doPut() o doDelete() para tratar otro tipo de peticiones
+    // Include methods doPost(), doPut() or doDelete() to handle other requests
 }
 ```
 
 --- 
 
-### [**Implementar Ruta de Contactos (Contacts)**]()
+### [**Implement Contacts Route (contacts)**]()
 
-Para implementar la ruta de contacts, deberemos hacer lo siguiente. (El código de implementación es sólo un ejemplo, no es obligatorio tratar los endpoints como en los ejemplos, o tratar tantas rutas o tipos de rutas)
+To implement the example contacts route, you can do the next:
 
 ```java
 public class ContactsRoute extends RestServiceRoute {
@@ -196,74 +195,74 @@ public class ContactsRoute extends RestServiceRoute {
     }
 
     public override Object doGet() {
-        // Para tratar obtener el Id de cuenta si viene por parámetro query de URL
+        // To get the account Id if has on URL Query parameters
         // Endpoint: api/v1.0/contacts?accountId=XXXXXX
         if (this.accountId == null && containsQueryParameter('accountId')) {
             this.accountId = getQueryParameter('accountId');
         }
 
         if (!String.isEmpty(getResourceId())) {
-            // Tratar la respuesta si existe Id del recurso en la URL
+            // Handle request when have resourceId on URL
             // Endpoint: api/v1.0/accounts/:accountId/contacts/:contactId
-            // o Endpoint: api/v1.0/contacts/:contactId
+            // or Endpoint: api/v1.0/contacts/:contactId
             Contact contact;
             if (!String.isEmpty(this.accountId)){
-                // Tratar la respuesta si tenemos Id de cuenta
+                // Handle request when has accountId
                 // Endpoint: api/v1.0/accounts/:accountId/contacts/:contactId
-                // o Endpoint: api/v1.0/contacts/:contactId/?accountId=XXXXXX
-                // implementación
+                // or Endpoint: api/v1.0/contacts/:contactId/?accountId=XXXXXX
+                // Implementation not shown
                 return contact;
             } else{
-                // Tratar la respuesta si no tenemos Id de cuenta
+                // Handle request when not has accountId
                 // Endpoint: api/v1.0/contacts/:contactId/
-                // implementación
+                // Implementation not shown
                 return contact;
             }
             return contact;
         } else if (!String.isEmpty(this.accountId)) {
-            // Tratar la respuesta si no existe Id del recurso en la URL, pero tenemos Id de cuenta
+            // Handle request when not has resourceId but with acoountId like query parameter
             // Endpoint: api/v1.0/contacts?accountId=XXXXXX
             List<Contact> contacts = List<Contact>();
-            // Implementación
+            // Implementation not shown
             return contacts;
         } else {
-            // Tratar la respuesta si no existe Id del recurso en la URL y no tenemos id de cuenta
+            // Handle request when not has resourceId or accountId
             // Endpoint: api/v1.0/contacts
             List<Contact> contacts = List<Contact>();
-            // Implementación
+            // Implementation not shown
             return contacts;
         }
     }
 
-    // Incluir métodos doPost(), doPut() o doDelete() para tratar otro tipo de peticiones
+    // Include methods doPost(), doPut() or doDelete() to handle other requests
 }
 ```
 
-La implementación de las rutas de `Opportunities` se harán de forma similar, así como cualquier otra ruta.
+The `Opportunities` route implementation will be simillar like the other routes.
 
 --- 
 
-### [**Gestion de Errores**]()
-El Framework está diseñado para gestionar los errores de forma automática siempre que se lancen excepciones que herende de la clase `RestService.RestException`, es decir, se pueden crear excepciones personalizadas para mejorar la gestión del framework, que éste sabrá tratarlas automáticamente.
+### [**Handling Errors**]()
+This Framework are designed to handle errors automatically when you use any class that extends from `RestService.RestException` class, that is, you can crete your custom exceptions to handling errors.
 
-Por defecto, está diseñado para trabajar con el estandar **JSONAPI 1.0** para el envio de errores, pero siempre se puede personalizar la gestión de errores del framework para cualquier ruta. Dentro de la clase `RestServiceError` tendremos todas las clases para enviar errores en el formato JSONAPI 1.0
+By default, the framework work with the estandard **JSONAPI 1.0** to return errors, but your can return any other object as response when you want. Into `RestServiceError` has all classes to handle errors with **JSONAPI 1.0**
 
-Para crear una excepción personaliazda, simplemente deberemos hacer lo siguiente:
+To create custom exceptions:
 
 ```java
 public class MyCustomException extends RestServiceException {
-    // El objeto errorResponse (de tipo Object) se serializará y se incluirá en el body automáticamente en caso de lanzar una excepción. Permite inclir cualquier objeto como respuesta
+    // The object errorResponse will be serialized and included into the response body automatically when you throw any exception.
     public MyCustomException(String message, Integer httpStatus, Object errorResponse) {
         super(message, httpStatus, errorResponse);
     }
 }
 ```
 
-podremos lanzarla en cualquier momento del tratamiento de las llamadas para gestionar errores, los errores serán serializados automáticamente en la respuesta y se incluira el código de estado http, sin que nosotros nos preocupemos de nada más que lanzar la excepción con la información correspondiente.
+You can throw or exception on any moment to handle errors and will be serialized and included into the response body automatically, including the httpStatus value into the response status code.
 
-Si queremos gestionar de forma personalizada el tratamiento de errores cuando se lanzan y no delegar en el framework el 100% de la responsabilidad, podemos sobreescribir en cada ruta el método `handleException()` para gestionar las excepciones lanzadas durante el proceso (tanto por salesforce como por nosotros)
+If you need to handle customized errors, can override the `handleException()` on any route to make your custom code error handling.
 
-El métod actualmente hace lo siguiente:
+The actual method do the next:
 
 ```java
 protected virtual void handleException(Exception ex) {
@@ -277,27 +276,27 @@ protected virtual void handleException(Exception ex) {
 }
 ```
 
-Pero podemos sobreescribirlo y tratar las excepciones como deseemos
+And we can override and make anything with it
 
 ```java
 public class ContactsRoute extends RestServiceRoute {
 
     public override Object doGet() {
-        // Código
+        // Code
     }
 
     public override Object doPost() {
-        // Más código
+        // Mode Code
     }
 
-    ///.... otros métodos
+    ///.... other methods
 
-    // Método sobreescrito para la gestión de excepciones
+    // override method to handle errors customized
     protected override void handleException(Exception ex) {
         if (ex instanceof RestService.RestServiceException) {
-            // Tratar la excepción del framework de forma personalizada
+            // Handle framework exceptions
         } else {
-            // Tratar las excepciones de Salesforce de forma personalizada
+            // Handle other any exception
         }
     }
 
@@ -306,22 +305,22 @@ public class ContactsRoute extends RestServiceRoute {
 
 > --- 
 > 
->Salvo casos puntuales, la gestión estandar de errores es más que suficiente para cubrir la mayoría de situaciones, por lo que no será necesario sobreescribir e implementar el método `handleException()`
+> Only on special cases you will need to override the `handleException()` method
 >
 > ---
 
 --- 
 
-### [**Devolviendo otros tipos de datos (`Content-Type`)**]()
-Por defecto, el Framework devuelve objetos de tipo JSON, serializados automáticamente en el cuerpo de la respuesta, por lo que establece por defecto el `Content-Type=application/json`, pero si deseamos devolver otro tipo de content type, podemos establecerlo a través del método `setContentType('value')` (heredado) y usar el método `setResponseBody()` (heredado) para establecer el cuerpo de la respuesta (También podemos hacer uso de la propieda `this.response`, heredada tambien, para establecer cualquier parámetro en la respuesta)
+### [**Return other Data types (`Content-Type`)**]()
+The Rest Service Framework return by default JSON data (`Content-Type=application/json`), because serialize automatically the returned response object by the route methods to include on response body. If you need to return any other data type, can use the methods `setContentType('value')` and `setResponseBody()` (both inherited) to set the content type and body to your response. (You can use `this.response` like route property to modify anything of the response)
 
-Por ejemplo
+Example:
 ```java
 public class CustomContentExampleRoute extends RestServiceRoute {
     protected override Object doGet() {
         setContentType('text/plain');
         setResponseBody('This response is not a JSON Response');
-        // Devolvemos null al establecer el response body y así no incluir nada en la respuesta
+        // Return null to not include anything on body serialized as JSON (default behaviour)
         return null;
     }
 }
@@ -329,64 +328,63 @@ public class CustomContentExampleRoute extends RestServiceRoute {
 
 >---
 >
-> Si en lugar de devolver null, devolvemos cualquier otro objeto, este será serializado e inluido en el cuerpo de la respuesta automáticamente, esto es util para enviar respuestas JSON, pero para tipos personalizados, devolver un valor sobreescribiria la respuesta.   
+> If not return null, the response body setted with `setResponseBody()` method will be override.
 > 
 > ---
 
 --- 
 
-### [**Rutas sin recursos**]()
+### [**Routes without ResourceId**]()
 
-En algunos momentos, es necesario implementar rutas que no cumplen estrictamente el estandar rest `/:RESOURCE_URI/:RESOURCE_ID`, por ejemplo la siguiente ruta:
+Sometimes, you need to implement the not standard REST routes like `/:RESOURCE_URI/:RESOURCE_ID`, for example, the next route:
 
-- `/api/v1/rutaSinParametros/otraRuta`
+- `/api/v1/routeWithoutParam/otherRoute`
 
-La ruta `rutaSinParametros` no contiene ningún parámetro, sino que está seguida de la ruta `otraRuta`. Para esto deberemos implementar la ruta de la siguiente forma:
+The `routeWithoutParam` route has not resourceId, in this case the next route are `otraRuta`. To implement this cases, you can do:
 
 ```java
 public class RouteWithoutResourceExampleRoute extends RestServiceRoute {
 
     public RouteWithoutResourceExampleRoute(){
-        // En el constructor, llamamos al método withoutResourceId() para indicar que la ruta no tiene Id de recurso que procesar, así pasar a la siguiente ruta si es necesario.
+        // On the constructor we call withoutResourceId() method to indicate to the framework that this route has not parameters
         withoutResourceId();
     }
 
-    // Configuramos las rutas hijas de la ruta de rutaSinParametros
+    // setup child routes
     public override void setupRoutes() {
-        // Usamos el método addRoute() (heredado) para añadir todas las ruta
-        addRoute('otraRuta', new OtherRoute());
+        // use addRoute() method (inherited) to add any route
+        addRoute('otherRoute', new OtherRoute());
     }
 
     protected override Object doGet() {
-       // Código...
+       // Code...
     }
 }
 ```
 
 --- 
 
-### [**Expandir la respuesta**]()
-Una función que implementa el Framework de forma automática, es la posibilidad de crear respuestas expandidas, es decir, respuesta que incluyan toda la información disponible, y no sólo la del enpoint solicitado. Por ejemplo, para el endpoint `api/v1.0/accounts/:accountId` tenemos otros endpoints disponibles como:
+### [**Expand Response**]()
+An interesting framework function is the ability to expand the response object, that is, get all child routes data into one single response object. For example we can call the endpoint `api/v1.0/accounts/:accountId` and get the entire data from:
 
 - `api/v1.0/accounts/:accountId/contacts`
 - `api/v1.0/accounts/:accountId/opportunities`
 
-Si elegimos la opción de expand, llamando al endpoint `api/v1.0/accounts/:accountId?expand=true` podemos recibir automáticamente la información del resto de endpoints e incluirla en el cuerpo de la respuesta:
+To choose the expand response, call endpoints like this: `api/v1.0/accounts/:accountId?expand=true` 
 ```java
 public class AccountRoute extends RestServiceRoute {
 
-    // Configuramos las rutas hijas de la ruta de account
+    // Setu child routes
     public override void setupRoutes() {
-        // Usamos el método addRoute() (heredado) para añadir todas las rutas de la API
+        // use addRoute() method (inherited) to add any route
         addRoute('contacts', new ContactsRoute(getResourceId()));
         addRoute('opportunities', new OpportunitiesRoute(getResourceId()));
     }
 
     public override Object doGet() {
-        if (!String.isEmpty(getResourceId())) {
-            // Para tratar el endpoint: api/v1.0/accounts/:accountId
+        if (!String.isEmpty(getResourceId())) 
             Account acc = // Get account
-            // Usámos el método expandResponse() para comprobar si se quiere expandir la respuesta
+            // Use expandResponse() method to check if need to expand the response
             if (expandResponse()) {
                 return expand(acc);
             }
@@ -397,7 +395,7 @@ public class AccountRoute extends RestServiceRoute {
 }
 ```
 
-El cuerpo expandido quedaría de la siguiente forma:
+The expanded response will be like this:
 
 ```json
 {
@@ -428,34 +426,34 @@ El cuerpo expandido quedaría de la siguiente forma:
 
 --- 
 
-### [**Método Útiles Heredados**]()
-La clase `RestServiceRoute` incluye una gran cantidad de métodos heredados útiles y con varias sobrecargas algunos de ellos que permite trabajar de forma más fácil y aportan mayor semántica a la implementación de las clases REST.
+### [**Util inherited methods**]()
+The `RestServiceRoute` class include to many inherited methods to use on any implement route to make easy implement APIs:
 
-- **`withoutResourceId()`**: Metodo para indicar que el endpoint no tiene un Id de recurso
-- **`getResourceId()`**: Método para obtener el Id del recurso del la URL
-- **`loadResource()`**: Método con múltiples sobrecargas para cargar cualquier recurso de la base de datos
-- **`loadResources()`**: Método con múltiples sobrecargas para cargar una lista de recursos de la base de datos
-- **`loadRelatedResource()`**: Método con múltiples sobrecargas para cargar un sólo recurso relacionado de la base de datos
-- **`loadRelatedResources()`**: Método con múltiples sobrecargas para cargar una lista de recursos relacionados de la base de datos
-- **`expandResponse()`**: Método para comprobar si se quiere exandir la respuesta
-- **`expand()`**: Método para expandir la respuesta
-- **`addRoute()`**: Método para añadir rutas hijas para cada endpoint donde sea necesario
+- **`withoutResourceId()`**: To indicate that the route has not resource Id
+- **`getResourceId()`**: To get the resource id from URL 
+- **`loadResource()`**: Method with several overloads to load a single resource (record) from database
+- **`loadResources()`**: Method with several overloads to load a resources list (records) from database
+- **`loadRelatedResource()`**: Method with several overloads to load a single related resource (record) from database
+- **`loadRelatedResources()`**: Method with several overloads to load related resources (records) from database
+- **`expandResponse()`**: Method to check if must return an expanded response
+- **`expand()`**: Method to expand the response with all endpoint data (with child endpoints data)
+- **`addRoute()`**: Method to add child routes to any route
 
-La clase `RestServiceRoute` hereda a su vez de la clase `RestService` que contiene otra serie de métodods útiles y propiedades que heredan todas las rutas implementadas:
+The `RestServiceRoute` class also inherit from `RestService` class and contains other interesting methods to use on childs:
 
-- **`request`**: Propiedad para obtener el objeto Rest Request de cada petición
-- **`response`**: Propiedad para obtener el objeto Rest Response de cada petición
-- **`getQueryParameters()`**: Método para obtener el mapa de parámetros de la URL
-- **`containsQueryParameter()`**: Método para comprobar si existe un parámetro concreto en la URL
-- **`getQueryParameter()`**: Método para obtenerel valor de un parámetro concreto de la URL
-- **`getRequestHeaders()`**: Método para obtener el mapa de valores del header de la petición
-- **`containsRequestHeader()`**: Método para comprobar si existe un determinado header en la petición
-- **`getRequestHeader()`**: Método para obtener el valor de un header concreto de la petición
-- **`addResponseHeader()`**: Método para añadir valores al header de la respuesta
-- **`setContentType()`**: Método para establecer el Content-Type de la respuesta si es distinto de `application/json`
-- **`setResponseBody()`**: Metodo con sobrecargas para establecer un cuerpo en la respuesta distinto de un JSON
+- **`request`**: Property to get the Rest Request object
+- **`response`**: Property to get the Rest Response object
+- **`getQueryParameters()`**: Method to get the request query parameters map
+- **`containsQueryParameter()`**: Method to check if exists the selected request query parameter
+- **`getQueryParameter()`**: Method to get the selected request query paramter value
+- **`getRequestHeaders()`**: Method to get the request headers map
+- **`containsRequestHeader()`**: Method check if the request contains the selected header
+- **`getRequestHeader()`**: Method to get the request header selected value
+- **`addResponseHeader()`**: Method to add headers to response
+- **`setContentType()`**: To set the response content type (to use different from `application/json`)
+- **`setResponseBody()`**: To set the response body content (to use different from JSON responses)
 
-# Contribuciones
+# Contributions
 
-- Código: Juan José Longoria López - Kanko (juanjoselongoria@gmail.com)
-- Inspirado en el Framework REST [**callawaycloud**](https://github.com/callawaycloud/apex-rest-route)
+- Code: Juan José Longoria López - Kanko (juanjoselongoria@gmail.com)
+- Inspired on REST Framework [**callawaycloud**](https://github.com/callawaycloud/apex-rest-route)
