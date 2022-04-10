@@ -1,17 +1,19 @@
 /**
  * Class to maky any callout request easy with the builder pattern implemented on CalloutBuilder class
- * 
+ *
  */
 public class CalloutService {
-
+    
     public static final String GET_METHOD = 'GET';
     public static final String POST_METHOD = 'POST';
     public static final String PUT_METHOD = 'PUT';
     public static final String DELETE_METHOD = 'DELETE';
 
+    
+
     /**
-     * Class to build any callout request. This class implements the builder pattern to make callouts calls easy to use and easy to understand
-     * beacuse has smantic methods like withBody(), toEndpoint()...
+     * Class to build any callout request. This class implements the builder pattern to make callouts calls, easy to use and easy to understand
+     * beacuse has semantic methods like withBody(), toEndpoint()...
      *
      */
     public class CalloutBuilder {
@@ -27,7 +29,6 @@ public class CalloutService {
         private Boolean compressed = false;
         private Integer timeout = 0;
         private HttpRequest request;
-
         /**
          * CalloutBuilder constructor
          *
@@ -59,7 +60,9 @@ public class CalloutService {
                 request.setBodyDocument(bodyDocument);
             if (this.headers.size() > 0) {
                 for (String key : headers.keySet()) {
-                    request.setHeader(key, headers.get(key));
+                    String value = headers.get(key);
+                    if (!String.isEmpty(key) && !String.isEmpty(value))
+                        request.setHeader(key, headers.get(key));
                 }
             }
             if (this.params.size() > 0) {
@@ -84,6 +87,10 @@ public class CalloutService {
             if (this.timeout > 0)
                 request.setTimeout(this.timeout);
             return request;
+        }
+
+        public String getHttpMethod() {
+            return this.method;
         }
 
         /**
@@ -138,7 +145,7 @@ public class CalloutService {
          * @param value (String): Content-Type value
          * @return CalloutBuilder: Return the callout builder instance to allow concat method calls
          */
-        public CalloutBuilder withContentType(String value){
+        public CalloutBuilder withContentType(String value) {
             this.headers.put('Content-Type', value);
             return this;
         }
@@ -172,7 +179,7 @@ public class CalloutService {
          * @param body (Object): Body as object to serialize it when build the request
          * @return CalloutBuilder: Return the callout builder instance to allow concat method calls
          */
-        public CalloutBuilder withBodyAsObject(Object body) {
+        public CalloutBuilder withBody(Object body) {
             if (this.method != 'GET' && this.method != 'DELETE')
                 this.objBody = body;
             return this;
@@ -184,7 +191,7 @@ public class CalloutService {
          * @param body (Blob): Body as blob
          * @return CalloutBuilder: Return the callout builder instance to allow concat method calls
          */
-        public CalloutBuilder withBodyAsBlob(Blob body) {
+        public CalloutBuilder withBody(Blob body) {
             if (this.method != 'GET' && this.method != 'DELETE')
                 this.blobBody = body;
             return this;
@@ -196,7 +203,7 @@ public class CalloutService {
          * @param body (Dom.Document): HTML Document body
          * @return CalloutBuilder: Return the callout builder instance to allow concat method calls
          */
-        public CalloutBuilder withBodyAsDocument(Dom.Document body) {
+        public CalloutBuilder withBody(Dom.Document body) {
             if (this.method != 'GET' && this.method != 'DELETE')
                 this.bodyDocument = body;
             return this;
@@ -223,6 +230,7 @@ public class CalloutService {
             return this;
         }
     }
+
 
     /**
      * Method to make any GET request using the CalloutBuilder

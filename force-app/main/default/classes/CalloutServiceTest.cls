@@ -31,21 +31,21 @@ public with sharing class CalloutServiceTest {
     @isTest
     public static void testBlobBody() {
         Test.setMock(HttpCalloutMock.class, new TestMock());
-        HttpResponse response = CalloutService.doPost().toEndpoint('www.google.es?id=abc').withParam('name', 'value').withHeader('name', 'value').withBodyAsBlob(Blob.valueOf('body')).timeoutLimit(1000).compressed().execute();
+        HttpResponse response = CalloutService.doPost().toEndpoint('www.google.es?id=abc').withParam('name', 'value').withHeader('name', 'value').withBody(Blob.valueOf('body')).timeoutLimit(1000).compressed().execute();
         system.assertEquals(200, response.getStatusCode());
     }
 
     @isTest
     public static void testBlobDocument() {
         Test.setMock(HttpCalloutMock.class, new TestMock());
-        HttpResponse response = CalloutService.doPost().toEndpoint('www.google.es').withParam('name', 'value').withHeader('name', 'value').withBodyAsDocument(new Dom.Document()).timeoutLimit(1000).execute();
+        HttpResponse response = CalloutService.doPost().toEndpoint('www.google.es').withParam('name', 'value').withHeader('name', 'value').withBody(new Dom.Document()).timeoutLimit(1000).execute();
         system.assertEquals(200, response.getStatusCode());
     }
 
     @isTest
     public static void testOtherSetters() {
         Test.setMock(HttpCalloutMock.class, new TestMock());
-        CalloutService.doPost().toEndpoint('www.google.es').withParam('name', 'value').withHeader('name', 'value').withBodyAsDocument(new Dom.Document()).timeoutLimit(1000).withCertificate('certName').compressed();
+        CalloutService.doPost().toEndpoint('www.google.es').withParam('name', 'value').withHeader('name', 'value').withBody(new Dom.Document()).timeoutLimit(1000).withCertificate('certName').compressed();
     }
 
     @isTest

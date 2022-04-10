@@ -190,6 +190,10 @@ public abstract class RestService {
         public MethodNotSupportedException(RestRequest req) {
             super('Method ' + req.httpMethod + ' is not supported', 'NOT_SUPPORTED', 400);
         }
+
+        public MethodNotSupportedException(CalloutService.CalloutBuilder builder) {
+            super('Method ' + builder.getHttpMethod() + ' is not supported', 'NOT_SUPPORTED', 400);
+        }
     }
 
     /**
